@@ -1,0 +1,28 @@
+name: CD-DEV
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to DEV server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.MLOPS_HOST }}
+          username: ${{ secrets.MLOPS_USER }}
+          key: ${{ secrets.MLOPS_SSH_KEY }}
+          script: |
+            cd ${{ secrets.MLOPS_PROJECT_DIR }}
+            git fetch --all
+            git checkout dev
+            git pull origin dev
+            docker-compose down
+            docker-compose up -d --build
+            docker system prune -f
